@@ -16,8 +16,8 @@ Now clear buildpacks and adds them in correct order:
 
 ```bash
 heroku buildpacks:clear
-heroku buildpacs:set https://github.com/lastko/heroku-buildpack-edgejs
-heroku buildpacs:add --index 1 heroku/nodejs
+heroku buildpacks:set https://github.com/lastko/heroku-buildpack-edgejs
+heroku buildpacks:add --index 1 heroku/nodejs
 ```
 
 	
