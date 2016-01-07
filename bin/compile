@@ -12,6 +12,10 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+# Override HOME environment
+export HOME_APP=$HOME
+export HOME=$BUILD_DIR
+
 function error() {
   echo " !     $*" >&2
   exit 1
@@ -37,6 +41,7 @@ mkdir -p "$APT_STATE_DIR/lists/partial"
 
 mkdir -p $BUILD_DIR/.profile.d
 
+# Set repositories
 cat <<EOF > $BUILD_DIR/.profile.d/sources.list
 deb http://archive.ubuntu.com/ubuntu trusty main
 deb http://archive.ubuntu.com/ubuntu trusty-security main
@@ -48,6 +53,7 @@ deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main
 deb http://httpredir.debian.org/debian jessie main
 EOF
 
+# Set apt preferences to avoid install all packages from jessie
 cat <<EOF > $BUILD_DIR/.profile.d/preferences
 Package: *
 Pin: release n=trusty*
@@ -66,12 +72,13 @@ Pin: origin "httpredir.debian.org"
 Pin-Priority: 800
 EOF
 
-
+# Copy keyring file and add keys mono and jessie
 cp -a /etc/apt/trusted.gpg $BUILD_DIR/trusted.gpg
 apt-key --keyring $BUILD_DIR/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 apt-key --keyring $BUILD_DIR/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010
 
 
+# Force APT_OPTIONS to override default values
 APT_OPTIONS="-o debug::nolocking=true -o dir::cache=$APT_CACHE_DIR -o dir::state=$APT_STATE_DIR -o Dir::Etc::SourceList=$BUILD_DIR/.profile.d/sources.list -o Dir::Etc::Trusted=$BUILD_DIR/trusted.gpg -o Dir::Etc::Preferences=$BUILD_DIR/.profile.d/preferences"
 
 topic "Updating apt caches"
@@ -106,13 +113,14 @@ export INCLUDE_PATH="\$HOME/.apt/usr/include:\$INCLUDE_PATH"
 export CPATH="\$INCLUDE_PATH"
 export CPPPATH="\$INCLUDE_PATH"
 export PKG_CONFIG_PATH="\$HOME/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:\$HOME/.apt/usr/lib/i386-linux-gnu/pkgconfig:\$HOME/.apt/usr/lib/pkgconfig:\$PKG_CONFIG_PATH"
-export MONO_PATH="\$HOME/.apt/usr/lib/mono/4.0:${HOME}/.apt/usr/lib/mono/3.5:${HOME}/.apt/usr/lib/mono/2.0"
-export MONO_CONFIG="${HOME}/.apt/etc/mono/config"
-export MONO_CFG_DIR="${HOME}/.apt/etc"
-export MONO_REGISTRY_PATH="${HOME}/.mono/registry"
-export DNX_USER_HOME="${HOME}/.dnx"
-export DNX_GLOBAL_HOME="${HOME}/.apt/usr/local/lib/dnx"
-source $HOME/.dnx/dnvm/dnvm.sh
+export MONO_PATH="\$HOME/.apt/usr/lib/mono/4.0:\${HOME}/.apt/usr/lib/mono/3.5:\${HOME}/.apt/usr/lib/mono/2.0"
+export MONO_CONFIG="\${HOME}/.apt/etc/mono/config"
+export MONO_CFG_DIR="\${HOME}/.apt/etc"
+export MONO_REGISTRY_PATH="\${HOME}/.mono/registry"
+export DNX_USER_HOME="\${HOME}/.dnx"
+export DNX_GLOBAL_HOME="\${HOME}/.apt/usr/local/lib/dnx"
+export EDGE_USE_CORECLR=1
+source \$HOME/.dnx/dnvm/dnvm.sh
 dnvm use edge-coreclr -p -r coreclr
 EOF
 
@@ -124,24 +132,10 @@ export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$INCLUDE_PATH"
 export CPATH="$INCLUDE_PATH"
 export CPPPATH="$INCLUDE_PATH"
 export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
-#export MONO_PATH="\$BUILD_DIR/.apt/usr/lib/mono/4.0:${BUILD_DIR}/.apt/usr/lib/mono/3.5:${BUILD_DIR}/.apt/usr/lib/mono/2.0"
-#export MONO_CONFIG="${BUILD_DIR}/.apt/etc/mono/config"
-#export MONO_CFG_DIR="${BUILD_DIR}/.apt/etc"
-#export MONO_REGISTRY_PATH="${BUILD_DIR}/.mono/registry"
-
-#topic "Install node"
-#PWD_STORE=$PWD
-#curl https://codeload.github.com/nodejs/node/tar.gz/v4.2.3 > $BUILD_DIR/node.v4.2.3.gz
-#cd $BUILD_DIR
-#tar -xzf node.v4.2.3.gz 
-#cd node-4.*
-#./configure --prefix=$BUILD_DIR/.apt/usr
-#make
-#make install
   
+# Change mono paths to avoid node-gyp install crash
 sed -e "s|/usr/|$BUILD_DIR/.apt/usr/|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
 
-#give environment to later buildpacks
 topic "Install edge dependences node-gyp and mocha"
 npm install node-gyp -g
 npm install mocha -g
@@ -157,7 +151,6 @@ chmod +x dnvminstall.sh
 . "$DNX_USER_HOME/dnvm/dnvm.sh" 
 dnvm install latest -r coreclr -alias edge-coreclr -g
 
-export HOME=$BUILD_DIR
 topic "Install edge.js"
 PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
@@ -171,9 +164,15 @@ npm install
 
 cd $PWD_STORE
 
-( set -o posix ; set ) > $BUILD_DIR/environment
-sed -e "s|$BUILD_DIR|/app|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
+# Dump all environment variables (debugging)
+# ( set -o posix ; set ) > $BUILD_DIR/environment
+
+# Set definitive path to mono
+sed -e "s|$BUILD_DIR|/$HOME_APP|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
 
 #dnu restore
+
+# Set HOME environment to original value
+export HOME=$HOME_APP
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
