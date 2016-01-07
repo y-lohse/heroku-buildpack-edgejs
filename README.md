@@ -9,7 +9,7 @@ This buildpack works as a secundary buildpack. You mus set heroku/nodejs as a pr
 Include a list of apt package names to be installed in a file named `Aptfile` in your app file folder.
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/ddollar/heroku-buildpack-apt/master/Aptfile > Aptfile
+curl -sSL https://raw.githubusercontent.com/lastko/heroku-buildpack-edgejs/master/Aptfile > Aptfile
 ```
 
 Now clear buildpacks and adds them in correct order:
