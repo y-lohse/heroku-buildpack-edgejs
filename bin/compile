@@ -81,8 +81,31 @@ apt-key --keyring $BUILD_DIR/trusted.gpg adv --keyserver keyserver.ubuntu.com --
 # Force APT_OPTIONS to override default values
 APT_OPTIONS="-o debug::nolocking=true -o dir::cache=$APT_CACHE_DIR -o dir::state=$APT_STATE_DIR -o Dir::Etc::SourceList=$BUILD_DIR/.profile.d/sources.list -o Dir::Etc::Trusted=$BUILD_DIR/trusted.gpg -o Dir::Etc::Preferences=$BUILD_DIR/.profile.d/preferences"
 
+mkdir -p $BUILD_DIR/.apt
+mkdir -p $BUILD_DIR/temp
+
 topic "Updating apt caches"
 apt-get $APT_OPTIONS update | indent
+
+for PACKAGE in $(cat $BUILD_DIR/Apttemp); do
+  if [[ $PACKAGE == *deb ]]; then
+    PACKAGE_NAME=$(basename $PACKAGE .deb)
+    PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
+
+    topic "Fetching $PACKAGE"
+    curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
+  else
+    topic "Fetching .debs for $PACKAGE"
+    apt-get $APT_OPTIONS -y --force-yes -d install --reinstall $PACKAGE | indent
+  fi
+done
+
+for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+  topic "Installing $(basename $DEB)"
+  dpkg -x $DEB $BUILD_DIR/temp/
+done
+
+rm -rf $APT_CACHE_DIR/archives/*.deb
 
 for PACKAGE in $(cat $BUILD_DIR/Aptfile); do
   if [[ $PACKAGE == *deb ]]; then
@@ -96,8 +119,6 @@ for PACKAGE in $(cat $BUILD_DIR/Aptfile); do
     apt-get $APT_OPTIONS -y --force-yes -d install --reinstall $PACKAGE | indent
   fi
 done
-
-mkdir -p $BUILD_DIR/.apt
 
 for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
   topic "Installing $(basename $DEB)"
@@ -125,10 +146,10 @@ dnvm use edge-coreclr -p -r coreclr
 EOF
 
 
-export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
-export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib:$LD_LIBRARY_PATH"
-export LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib:$LIBRARY_PATH"
-export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$INCLUDE_PATH"
+export PATH="$BUILD_DIR/.apt/usr/bin:$BUILD_DIR/temp/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LD_LIBRARY_PATH"
+export LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LIBRARY_PATH"
+export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$BUILD_DIR/temp/usr/include::$INCLUDE_PATH"
 export CPATH="$INCLUDE_PATH"
 export CPPPATH="$INCLUDE_PATH"
 export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -178,5 +199,8 @@ sed -e "s|$BUILD_DIR|/$HOME_APP|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
 
 # Set HOME environment to original value
 export HOME=$HOME_APP
+
+# Clean temp directory
+rm -rf $BUILD_DIR/temp
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"

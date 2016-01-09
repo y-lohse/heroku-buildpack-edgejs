@@ -1,16 +1,5 @@
-libjpeg62-turbo
-curl
-g++
-pkg-config
 libgdiplus
 libunwind8
-libssl-dev
-make
 gettext
-libssl-dev
-libcurl4-openssl-dev
 zlib1g
-libicu-dev
-uuid-dev
-unzip
 mono-complete
