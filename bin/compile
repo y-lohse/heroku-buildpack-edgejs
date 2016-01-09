@@ -13,8 +13,8 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 # Override HOME environment
-#export HOME_APP=$HOME
-#export HOME=$BUILD_DIR
+export HOME_APP=$HOME
+export HOME=$BUILD_DIR
 
 function error() {
   echo " !     $*" >&2
@@ -142,8 +142,8 @@ npm install mocha -g
 
 topic "Install dnvm."
 export DNX_USER_HOME=$BUILD_DIR/.dnx
-#export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
-#mkdir -p $DNX_GLOBAL_HOME
+export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
+mkdir -p $DNX_GLOBAL_HOME
 cd $BUILD_DIR/
 curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
 chmod +x dnvminstall.sh
@@ -165,14 +165,14 @@ npm install
 cd $PWD_STORE
 
 # Dump all environment variables (debugging)
-( set -o posix ; set ) > $BUILD_DIR/environment
+# ( set -o posix ; set ) > $BUILD_DIR/environment
 
 # Set definitive path to mono
-sed -e "s|$BUILD_DIR|/$HOME|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
+sed -e "s|$BUILD_DIR|/$HOME_APP|g" -i $BUILD_DIR/.apt/usr/bin/dmcs
 
 #dnu restore
 
 # Set HOME environment to original value
-#export HOME=$HOME_APP
+export HOME=$HOME_APP
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
