@@ -156,11 +156,15 @@ PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
 cd $BUILD_DIR/node_modules/
 unzip  $BUILD_DIR/node_modules/edge.js.zip
+rm $BUILD_DIR/node_modules/edge.js.zip
 mv edge-master edge
 cd edge/
 EDGE_DIRECTORY=$(pwd)
 dnvm use edge-coreclr -p -r coreclr
 npm install
+
+# npm cache clean
+npm cache clean
 
 cd $PWD_STORE
 
