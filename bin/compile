@@ -202,5 +202,6 @@ export HOME=$HOME_APP
 
 # Clean temp directory
 rm -rf $BUILD_DIR/temp
+rm -rf $BUILD_DIR/.apt/usr/lib/mono*
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
