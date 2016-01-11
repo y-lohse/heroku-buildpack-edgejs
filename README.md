@@ -1,26 +1,25 @@
 # heroku-buildpack-edgejs
 
-Add support for apt-based dependencies during both compile and runtime. Furthermore install mono, dnvm and edge.js.
+Add support for edgejs (http://tjanczuk.github.io/edge/#/) in heroku stack.
 
 ## Usage
 
 This buildpack works as a secundary buildpack. You mus set heroku/nodejs as a primary buildpacks and this repo as a secundary.
 
-Include a list of apt package names to be installed in a file named `Aptfile` in your app file folder.
+In order to use this buildpack you must put `Edgejs` empty file at the root project.
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/lastko/heroku-buildpack-edgejs/master/Aptfile > Aptfile
+touch Edgejs
 ```
-
 Now clear buildpacks and adds them in correct order:
 
 ```bash
 heroku buildpacks:clear
-heroku buildpacks:set https://github.com/lastko/heroku-buildpack-edgejs
-heroku buildpacks:add --index 1 heroku/nodejs
+heroku buildpacks:set heroku/nodejs
+heroku buildpacks:add https://github.com/lastko/heroku-buildpack-edgejs
 ```
+### DO NOT INCLUDE EDGEJS DEPENDENCY at package.json
 
-	
 ## License
 
 MIT
