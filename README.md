@@ -18,7 +18,14 @@ heroku buildpacks:clear
 heroku buildpacks:set heroku/nodejs
 heroku buildpacks:add https://github.com/lastko/heroku-buildpack-edgejs
 ```
-### DO NOT INCLUDE EDGEJS DEPENDENCY at package.json
+
+By default edge.js use **mono** if you want to use **coreCLR** you must set environment variable:
+
+```bash
+heroku config:add EDGE_USE_CORECLR=1
+```
+
+**DO NOT INCLUDE EDGEJS DEPENDENCY in package.json.**
 
 ## License
 
