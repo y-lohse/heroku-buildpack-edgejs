@@ -4,7 +4,7 @@ Add support for edgejs (http://tjanczuk.github.io/edge/#/) in heroku stack.
 
 ## Usage
 
-This buildpack works as a secundary buildpack. You mus set heroku/nodejs as a primary buildpacks and this repo as a secundary.
+This buildpack works as a secundary buildpack. You must set heroku/nodejs as a primary buildpacks and this repo as a secundary.
 
 In order to use this buildpack you must put `Edgejs` empty file at the root project.
 
