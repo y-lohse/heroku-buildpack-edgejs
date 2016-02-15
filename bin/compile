@@ -46,7 +46,7 @@ function create_dirs(){
 
 function install_apt_tmp(){
   APTFILE=$1
-  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp/archives/partial"
+  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp"
 
   topic "Updating tmp apt caches"
   apt-get $APT_OPTIONS update | indent
