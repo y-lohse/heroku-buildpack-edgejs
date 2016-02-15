@@ -38,7 +38,7 @@ function create_dirs(){
   mkdir -p $BUILD_DIR/.apt
   mkdir -p $BUILD_DIR/temp
   mkdir -p "$APT_CACHE_DIR/archives/partial"
-  mkdir -p "$APT_CACHE_DIR/temp/partial"
+  mkdir -p "$APT_CACHE_DIR/temp/archives/partial"
   mkdir -p "$APT_STATE_DIR/lists/partial"
   mkdir -p $BUILD_DIR/.profile.d
 }
@@ -46,7 +46,7 @@ function create_dirs(){
 
 function install_apt_tmp(){
   APTFILE=$1
-  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp/"
+  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp/archives/partial"
 
   topic "Updating tmp apt caches"
   apt-get $APT_OPTIONS update | indent
@@ -54,7 +54,7 @@ function install_apt_tmp(){
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
       PACKAGE_NAME=$(basename $PACKAGE .deb)
-      PACKAGE_FILE=$APT_CACHE_DIR/temp/00_$PACKAGE_NAME.deb
+      PACKAGE_FILE=$APT_CACHE_DIR/temp/archives/partial/00_$PACKAGE_NAME.deb
   
       topic "Fetching $PACKAGE"
       curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
@@ -65,7 +65,7 @@ function install_apt_tmp(){
   done
   
   
-  for DEB in $(ls -1 $APT_CACHE_DIR/temp/*.deb); do
+  for DEB in $(ls -1 $APT_CACHE_DIR/temp/archives/partial/*.deb); do
     topic "Installing $(basename $DEB)"
     dpkg -x $DEB $BUILD_DIR/temp/
   done
