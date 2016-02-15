@@ -124,12 +124,13 @@ libcurl4-openssl-dev
 libicu-dev
 uuid-dev
 unzip
-EOF
-
-# Temporal mono-complete
-cat <<EOF >$BUILD_DIR/temp/mono
 mono-complete
 EOF
+
+## Temporal mono-complete
+#cat <<EOF >$BUILD_DIR/temp/mono
+#mono-complete
+#EOF
 
 # Copy keyring file and add keys mono and jessie
 cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
@@ -145,7 +146,7 @@ apt-get $APT_OPTIONS update | indent
 
 install_apt $BUILD_DIR/temp/Apttemp temp
 install_apt $BUILD_DIR/temp/Aptfile
-install_apt $BUILD_DIR/temp/mono temp
+#install_apt $BUILD_DIR/temp/mono temp
 
 topic "Writing profile script"
 cat <<EOF >$BUILD_DIR/.profile.d/000_apt.sh
