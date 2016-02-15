@@ -9,14 +9,21 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+# Force APT_OPTIONS to override default values
+APT_CACHE_DIR="$CACHE_DIR/apt/cache"
+APT_STATE_DIR="$CACHE_DIR/apt/state"
+APT_OPTIONS="-o debug::nolocking=true -o dir::state=$APT_STATE_DIR -o Dir::Etc::SourceList=$BUILD_DIR/temp/sources.list -o Dir::Etc::Trusted=$BUILD_DIR/temp/trusted.gpg -o Dir::Etc::Preferences=$BUILD_DIR/temp/preferences"
+
 function error() {
   echo " !     $*" >&2
   exit 1
 }
 
+
 function topic() {
   echo "-----> $*"
 }
+
 
 function indent() {
   c='s/^/       /'
@@ -26,9 +33,23 @@ function indent() {
   esac
 }
 
+
+function create_dirs(){
+  mkdir -p $BUILD_DIR/.apt
+  mkdir -p $BUILD_DIR/temp
+  mkdir -p "$APT_CACHE_DIR/archives/partial"
+  mkdir -p "$APT_CACHE_DIR/temp/partial"
+  mkdir -p "$APT_STATE_DIR/lists/partial"
+  mkdir -p $BUILD_DIR/.profile.d
+}
+
+
 function install_apt_tmp(){
   APTFILE=$1
   APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp"
+
+  topic "Updating tmp apt caches"
+  apt-get $APT_OPTIONS update | indent
 
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
@@ -51,9 +72,14 @@ function install_apt_tmp(){
 
 }
 
+
 function install_apt(){
   APTFILE=$1
   APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR"
+
+  topic "Updating apt caches"
+  apt-get $APT_OPTIONS update | indent
+
 
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
@@ -75,17 +101,7 @@ function install_apt(){
 }
 
 
-mkdir -p $BUILD_DIR/.apt
-mkdir -p $BUILD_DIR/temp
-
-APT_CACHE_DIR="$CACHE_DIR/apt/cache"
-APT_STATE_DIR="$CACHE_DIR/apt/state"
-
-mkdir -p "$APT_CACHE_DIR/archives/partial"
-mkdir -p "$APT_CACHE_DIR/temp/partial"
-mkdir -p "$APT_STATE_DIR/lists/partial"
-
-mkdir -p $BUILD_DIR/.profile.d
+create_dirs
 
 # Set repositories
 cat <<EOF > $BUILD_DIR/temp/sources.list
@@ -145,12 +161,6 @@ cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
 apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
 apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010
 
-
-# Force APT_OPTIONS to override default values
-APT_OPTIONS="-o debug::nolocking=true -o dir::state=$APT_STATE_DIR -o Dir::Etc::SourceList=$BUILD_DIR/temp/sources.list -o Dir::Etc::Trusted=$BUILD_DIR/temp/trusted.gpg -o Dir::Etc::Preferences=$BUILD_DIR/temp/preferences"
-
-topic "Updating apt caches"
-apt-get $APT_OPTIONS update | indent
 
 install_apt_tmp $BUILD_DIR/temp/Apttemp
 install_apt $BUILD_DIR/temp/Aptfile
