@@ -13,8 +13,8 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 # Override HOME environment
-export HOME_APP=$HOME
-export HOME=$BUILD_DIR
+#export HOME_APP=$HOME
+#export HOME=$BUILD_DIR
 
 function error() {
   echo " !     $*" >&2
@@ -83,8 +83,8 @@ function install_apt(){
 mkdir -p $BUILD_DIR/.apt
 mkdir -p $BUILD_DIR/temp
 
-APT_CACHE_DIR="$CACHE_DIR/apt/cache"
-APT_STATE_DIR="$CACHE_DIR/apt/state"
+export APT_CACHE_DIR="$CACHE_DIR/apt/cache"
+export APT_STATE_DIR="$CACHE_DIR/apt/state"
 
 mkdir -p "$APT_CACHE_DIR/archives/partial"
 mkdir -p "$APT_CACHE_DIR/archives/temp/partial"
@@ -229,6 +229,6 @@ cd $PWD_STORE
 rm -rf $BUILD_DIR/temp
 
 # Set HOME environment to original value
-export HOME=$HOME_APP
+#export HOME=$HOME_APP
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
