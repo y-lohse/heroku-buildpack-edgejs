@@ -9,6 +9,10 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+# Override HOME environment
+export HOME_APP=$HOME
+export HOME=$BUILD_DIR
+
 # Force APT_OPTIONS to override default values
 APT_CACHE_DIR="$CACHE_DIR/apt/cache"
 APT_CACHE_DIR_TMP="$CACHE_DIR/apt/cache/tmp"
@@ -230,6 +234,6 @@ cd $PWD_STORE
 rm -rf $BUILD_DIR/temp
 
 # Set HOME environment to original value
-#export HOME=$HOME_APP
+export HOME=$HOME_APP
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
