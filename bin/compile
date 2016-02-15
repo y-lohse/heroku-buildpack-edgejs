@@ -66,7 +66,7 @@ function install_apt_tmp(){
   done
   
   
-  for DEB in $(ls -1 $APT_CACHE_DIR_TMP/archives/partial/*.deb); do
+  for DEB in $(ls -1 $APT_CACHE_DIR_TMP/archives/*.deb); do
     topic "Installing $(basename $DEB)"
     dpkg -x $DEB $BUILD_DIR/temp/
   done
