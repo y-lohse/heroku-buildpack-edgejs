@@ -44,7 +44,8 @@ function install_apt(){
         PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
       else
         PACKAGE_FILE=$APT_CACHE_DIR/temp/00_$PACKAGE_NAME.deb
-      fi  
+      fi 
+      topic "PACKAGE_FILE = $PACKAGE_FILE" 
   
       topic "Fetching $PACKAGE"
       curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
