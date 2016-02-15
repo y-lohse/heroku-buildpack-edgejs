@@ -28,7 +28,7 @@ function indent() {
 
 function install_apt_tmp(){
   APTFILE=$1
-  APT_OPTIONS="${APT_OPTIONS} -o dir::cache=$APT_CACHE_DIR/temp"
+  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR/temp"
 
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
@@ -53,7 +53,7 @@ function install_apt_tmp(){
 
 function install_apt(){
   APTFILE=$1
-  APT_OPTIONS="${APT_OPTIONS} -o dir::cache=$APT_CACHE_DIR"
+  APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR"
 
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
