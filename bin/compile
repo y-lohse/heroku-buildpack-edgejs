@@ -40,7 +40,11 @@ function install_apt(){
   for PACKAGE in $(cat ${APTFILE}); do
     if [[ $PACKAGE == *deb ]]; then
       PACKAGE_NAME=$(basename $PACKAGE .deb)
-      PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
+      if [ -z "$TEMP" ];then
+        PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
+      else
+        PACKAGE_FILE=$APT_CACHE_DIR/temp/00_$PACKAGE_NAME.deb
+      fi  
   
       topic "Fetching $PACKAGE"
       curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
@@ -50,17 +54,28 @@ function install_apt(){
     fi
   done
   
-  
-  for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
-    topic "Installing $(basename $DEB)"
-    if [ -z "$TEMP" ]; then
+  if [ -z "$TEMP" ]; then
+    for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+      topic "Installing $(basename $DEB)"
       dpkg -x $DEB $BUILD_DIR/.apt/
-    else
+    done
+  else
+    for DEB in $(ls -1 $APT_CACHE_DIR/temp/*.deb); do
+      topic "Installing $(basename $DEB)"
       dpkg -x $DEB $BUILD_DIR/temp/
-    fi
-  done
+    done
+  fi
+  
+#  for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+#    topic "Installing $(basename $DEB)"
+#    if [ -z "$TEMP" ]; then
+#      dpkg -x $DEB $BUILD_DIR/.apt/
+#    else
+#      dpkg -x $DEB $BUILD_DIR/temp/
+#    fi
+#  done
 
-  rm -rf $APT_CACHE_DIR/archives/*.deb
+#  rm -rf $APT_CACHE_DIR/archives/*.deb
 }
 
 
@@ -71,6 +86,7 @@ APT_CACHE_DIR="$CACHE_DIR/apt/cache"
 APT_STATE_DIR="$CACHE_DIR/apt/state"
 
 mkdir -p "$APT_CACHE_DIR/archives/partial"
+mkdir -p "$APT_CACHE_DIR/temp/partial"
 mkdir -p "$APT_STATE_DIR/lists/partial"
 
 mkdir -p $BUILD_DIR/.profile.d
