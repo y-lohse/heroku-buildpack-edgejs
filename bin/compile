@@ -229,6 +229,7 @@ topic "Install edge dependences node-gyp and mocha"
 npm install node-gyp -g | indent
 npm install mocha -g | indent
 
+
 topic "Install dnvm."
 export DNX_USER_HOME=$BUILD_DIR/.dnx
 export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
@@ -244,7 +245,7 @@ topic "Install edge.js"
 PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
 cd $BUILD_DIR/node_modules/
-unzip  $BUILD_DIR/node_modules/edge.js.zip | indent
+unzip  -q $BUILD_DIR/node_modules/edge.js.zip
 rm $BUILD_DIR/node_modules/edge.js.zip
 mv edge-master edge
 cd edge/
