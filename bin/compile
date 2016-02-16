@@ -255,19 +255,27 @@ else
   echo "$(du -hsxc $CACHE_DIR/dirs/dnx|awk '{print $1}') restored in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
 fi
 
-topic "Install edge.js"
-PWD_STORE=$PWD
-curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
-cd $BUILD_DIR/node_modules/
-unzip  -q $BUILD_DIR/node_modules/edge.js.zip
-rm $BUILD_DIR/node_modules/edge.js.zip
-mv edge-master edge
-cd edge/
-EDGE_DIRECTORY=$(pwd)
-dnvm use edge-coreclr -p -r coreclr
-npm install
-npm cache clean
-
+# Check if edge_js is in cache
+if [[ ! $CACHE_DIR/dirs/edge ]]; then
+  topic "Install edge.js"
+  PWD_STORE=$PWD
+  curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
+  cd $BUILD_DIR/node_modules/
+  unzip  -q $BUILD_DIR/node_modules/edge.js.zip
+  rm $BUILD_DIR/node_modules/edge.js.zip
+  mv edge-master edge
+  cd edge/
+  EDGE_DIRECTORY=$(pwd)
+  dnvm use edge-coreclr -p -r coreclr
+  npm install
+  npm cache clean
+  topic "Copy node.js to cache directory..."
+  cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/
+else
+  topic "Restoring module from cache..."
+  cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/
+fi
+  
 cd $PWD_STORE
 
 # Delete temporal folder
