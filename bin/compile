@@ -274,6 +274,7 @@ if [[ ! $CACHE_DIR/dirs/edge ]]; then
 else
   topic "Restoring module from cache..."
   cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/
+  echo "$(du -hsxc $CACHE_DIR/dirs/edge|awk '{print $1}') restored in $BUILD_DIR/node_modules/edge." | indent
 fi
   
 cd $PWD_STORE
