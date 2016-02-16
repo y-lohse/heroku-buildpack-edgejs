@@ -245,6 +245,7 @@ if [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
   dnvm install latest -r coreclr -alias edge-coreclr -g
   topic "Creating dnvm cache directory..."
   cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
+  cp -ra $DNX_GLOBAL_HOME CACHE_DIR/dirs/
 else
   topic "Restoring .dnx and dnx from CACHE_DIR"
   cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/
