@@ -44,13 +44,13 @@ function indent() {
 
 
 function create_dirs(){
-  mkdir -p $BUILD_DIR/.apt
-  mkdir -p $BUILD_DIR/temp
-  mkdir -p $CACHE_DIR/dirs
+  mkdir -p "$BUILD_DIR/.apt"
+  mkdir -p "$BUILD_DIR/temp"
+  mkdir -p "$CACHE_DIR/dirs"
   mkdir -p "$APT_CACHE_DIR/archives/partial"
   mkdir -p "$APT_CACHE_DIR_TMP/archives/partial"
   mkdir -p "$APT_STATE_DIR/lists/partial"
-  mkdir -p $BUILD_DIR/.profile.d
+  mkdir -p "$BUILD_DIR/.profile.d"
 }
 
 
@@ -173,8 +173,8 @@ function add_apt_keys(){
   
 }
 
-create_apt_packages_files
 create_dirs
+create_apt_packages_files
 add_apt_keys
 
 
