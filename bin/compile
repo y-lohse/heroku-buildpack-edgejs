@@ -237,7 +237,7 @@ cd $BUILD_DIR/
 curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
 chmod +x dnvminstall.sh
 ./dnvminstall.sh | indent
-. "$DNX_USER_HOME/dnvm/dnvm.sh" | indent
+. "$DNX_USER_HOME/dnvm/dnvm.sh"
 dnvm install latest -r coreclr -alias edge-coreclr -g | indent
 
 topic "Install edge.js"
