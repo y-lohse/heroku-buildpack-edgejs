@@ -17,7 +17,11 @@ export HOME=$BUILD_DIR
 APT_CACHE_DIR="$CACHE_DIR/apt/cache"
 APT_CACHE_DIR_TMP="$CACHE_DIR/apt/cache/tmp"
 APT_STATE_DIR="$CACHE_DIR/apt/state"
-export APT_OPTIONS="-o debug::nolocking=true -o dir::state=$APT_STATE_DIR -o Dir::Etc::SourceList=$BUILD_DIR/temp/sources.list -o Dir::Etc::Trusted=$BUILD_DIR/temp/trusted.gpg -o Dir::Etc::Preferences=$BUILD_DIR/temp/preferences"
+APT_OPTIONS="-o debug::nolocking=true -o dir::state=$APT_STATE_DIR"
+APT_OPTIONS="$APT_OPTIONS -o Dir::Etc::SourceList=$BUILD_DIR/temp/sources.list"
+APT_OPTIONS="$APT_OPTIONS -o Dir::Etc::Trusted=$BUILD_DIR/temp/trusted.gpg"
+APT_OPTIONS="$APT_OPTIONS -o Dir::Etc::Preferences=$BUILD_DIR/temp/preferences"
+
 
 function error() {
   echo " !     $*" >&2
@@ -42,6 +46,7 @@ function indent() {
 function create_dirs(){
   mkdir -p $BUILD_DIR/.apt
   mkdir -p $BUILD_DIR/temp
+  mkdir -p $CACHE_DIR/dirs
   mkdir -p "$APT_CACHE_DIR/archives/partial"
   mkdir -p "$APT_CACHE_DIR_TMP/archives/partial"
   mkdir -p "$APT_STATE_DIR/lists/partial"
@@ -106,10 +111,9 @@ function install_apt(){
 }
 
 
-create_dirs
-
-# Set repositories
-cat <<EOF > $BUILD_DIR/temp/sources.list
+function create_apt_packages_files(){
+  # Set repositories
+  cat <<EOF > $BUILD_DIR/temp/sources.list
 deb http://archive.ubuntu.com/ubuntu trusty main
 deb http://archive.ubuntu.com/ubuntu trusty-security main
 deb http://archive.ubuntu.com/ubuntu trusty-updates main
@@ -119,8 +123,8 @@ deb http://download.mono-project.com/repo/debian wheezy-libjpeg62-compat main
 deb http://httpredir.debian.org/debian jessie main
 EOF
 
-# Set apt preferences to avoid install all packages from jessie
-cat <<EOF > $BUILD_DIR/temp/preferences
+  # Set apt preferences to avoid install all packages from jessie
+  cat <<EOF > $BUILD_DIR/temp/preferences
 Package: *
 Pin: release n=trusty*
 Pin-Priority: 990
@@ -138,16 +142,16 @@ Pin: origin "httpredir.debian.org"
 Pin-Priority: 800
 EOF
 
-# Libraries
-cat <<EOF >$BUILD_DIR/temp/Aptfile
+  # Libraries
+  cat <<EOF >$BUILD_DIR/temp/Aptfile
 libgdiplus
 libunwind8
 gettext
 zlib1g
 EOF
 
-# Temporal dependencies
-cat <<EOF >$BUILD_DIR/temp/Apttemp
+  # Temporal dependencies
+  cat <<EOF >$BUILD_DIR/temp/Apttemp
 g++
 pkg-config
 libssl-dev
@@ -159,16 +163,33 @@ uuid-dev
 unzip
 mono-complete
 EOF
+}
+
+function add_apt_keys(){
+  # Copy keyring file and add keys mono and jessie
+  cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010
+  
+}
+
+create_apt_packages_files
+create_dirs
+add_apt_keys
 
 
-# Copy keyring file and add keys mono and jessie
-cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
-apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010
+# If packages not installed in CACHE_DIR then install and create cache else
+# use CACHE_DIR.
+if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
+  install_apt_tmp $BUILD_DIR/temp/Apttemp
+  install_apt $BUILD_DIR/temp/Aptfile
+  cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/.apt
+  cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/temp
+else
+  cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/.apt
+  cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/temp
+fi
 
-
-install_apt_tmp $BUILD_DIR/temp/Apttemp
-install_apt $BUILD_DIR/temp/Aptfile
 
 topic "Writing profile script"
 cat <<EOF >$BUILD_DIR/.profile.d/000_apt.sh
@@ -237,3 +258,4 @@ rm -rf $BUILD_DIR/temp
 export HOME=$HOME_APP
 
 export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
+
