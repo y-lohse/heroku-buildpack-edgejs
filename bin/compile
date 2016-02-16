@@ -168,8 +168,8 @@ EOF
 function add_apt_keys(){
   # Copy keyring file and add keys mono and jessie
   cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
-  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
-  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF | indent
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010 | indent
   
 }
 
@@ -189,9 +189,9 @@ if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
 else
   topic "Restoring .apt and temp from cache..."
   cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/
-  topic "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt"
+  indent "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt"
   cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
-  topic "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp"
+  indent "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp"
 fi
 
 
@@ -226,8 +226,8 @@ export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUIL
 sed -e "s|/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs
 
 topic "Install edge dependences node-gyp and mocha"
-npm install node-gyp -g
-npm install mocha -g
+npm install node-gyp -g | indent
+npm install mocha -g | indent
 
 topic "Install dnvm."
 export DNX_USER_HOME=$BUILD_DIR/.dnx
@@ -236,22 +236,22 @@ mkdir -p $DNX_GLOBAL_HOME
 cd $BUILD_DIR/
 curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
 chmod +x dnvminstall.sh
-./dnvminstall.sh
-. "$DNX_USER_HOME/dnvm/dnvm.sh" 
-dnvm install latest -r coreclr -alias edge-coreclr -g
+./dnvminstall.sh | indent
+. "$DNX_USER_HOME/dnvm/dnvm.sh" | indent
+dnvm install latest -r coreclr -alias edge-coreclr -g | indent
 
 topic "Install edge.js"
 PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
 cd $BUILD_DIR/node_modules/
-unzip  $BUILD_DIR/node_modules/edge.js.zip
+unzip  $BUILD_DIR/node_modules/edge.js.zip | indent
 rm $BUILD_DIR/node_modules/edge.js.zip
 mv edge-master edge
 cd edge/
 EDGE_DIRECTORY=$(pwd)
-dnvm use edge-coreclr -p -r coreclr
-npm install
-npm cache clean
+dnvm use edge-coreclr -p -r coreclr | indent
+npm install | indent
+npm cache clean | indent
 
 cd $PWD_STORE
 
