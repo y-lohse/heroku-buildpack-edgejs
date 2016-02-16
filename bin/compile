@@ -184,12 +184,14 @@ if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
   install_apt_tmp $BUILD_DIR/temp/Apttemp
   install_apt $BUILD_DIR/temp/Aptfile
   topic "Creating cache directories..."
-  cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/.apt
-  cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/temp
+  cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/
+  cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/
 else
   topic "Restoring .apt and temp from cache..."
-  cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/.apt
-  cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/temp
+  cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/
+  topic "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt"
+  cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
+  topic "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp"
 fi
 
 
