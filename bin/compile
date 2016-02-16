@@ -250,8 +250,8 @@ mv edge-master edge
 cd edge/
 EDGE_DIRECTORY=$(pwd)
 dnvm use edge-coreclr -p -r coreclr | indent
-npm install | indent
-npm cache clean | indent
+npm install
+npm cache clean
 
 cd $PWD_STORE
 
