@@ -230,18 +230,29 @@ npm install node-gyp -g | indent
 npm install mocha -g | indent
 
 
-topic "Install dnvm."
 export DNX_USER_HOME=$BUILD_DIR/.dnx
 export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
-mkdir -p $DNX_GLOBAL_HOME
-cd $BUILD_DIR/
-curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
-chmod +x dnvminstall.sh
-./dnvminstall.sh | indent
-. "$DNX_USER_HOME/dnvm/dnvm.sh"
-dnvm install latest -r coreclr -alias edge-coreclr -g
+
+if [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
+  topic "Install dnvm."
+  mkdir -p $DNX_GLOBAL_HOME
+  cd $BUILD_DIR/
+  curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
+  chmod +x dnvminstall.sh
+  ./dnvminstall.sh | indent
+  dnvm install latest -r coreclr -alias edge-coreclr -g
+  topic "Creating dnvm cache directory..."
+  cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
+else
+  topic "Restoring .dnx and dnx from CACHE_DIR"
+  cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/
+  cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/
+  echo "$(du -hsxc $CACHE_DIR/dirs/.dnx|awk '{print $1}') restored in $BUILD_DIR/.dnx" | indent
+  echo "$(du -hsxc $CACHE_DIR/dirs/dnx|awk '{print $1}') restored in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
+fi
 
 topic "Install edge.js"
+. "$DNX_USER_HOME/dnvm/dnvm.sh"
 PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
 cd $BUILD_DIR/node_modules/
