@@ -241,6 +241,7 @@ if [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
   curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
   chmod +x dnvminstall.sh
   ./dnvminstall.sh | indent
+  . "$DNX_USER_HOME/dnvm/dnvm.sh"
   dnvm install latest -r coreclr -alias edge-coreclr -g
   topic "Creating dnvm cache directory..."
   cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
@@ -248,12 +249,12 @@ else
   topic "Restoring .dnx and dnx from CACHE_DIR"
   cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/
   cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/
+  . "$DNX_USER_HOME/dnvm/dnvm.sh"
   echo "$(du -hsxc $CACHE_DIR/dirs/.dnx|awk '{print $1}') restored in $BUILD_DIR/.dnx" | indent
   echo "$(du -hsxc $CACHE_DIR/dirs/dnx|awk '{print $1}') restored in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
 fi
 
 topic "Install edge.js"
-. "$DNX_USER_HOME/dnvm/dnvm.sh"
 PWD_STORE=$PWD
 curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
 cd $BUILD_DIR/node_modules/
