@@ -189,9 +189,9 @@ if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
 else
   topic "Restoring .apt and temp from cache..."
   cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/
-  echo "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt" | indent
+  echo "$(du -hsxc $BUILD_DIR/.apt|awk '{print $1}') restored in $BUILD_DIR/.apt" | indent
   cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
-  echo "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp" | indent
+  echo "$(du -hsxc $BUILD_DIR/temp|awk '{print $1}') restored in $BUILD_DIR/temp" | indent
 fi
 
 
@@ -233,6 +233,7 @@ npm install mocha -g | indent
 export DNX_USER_HOME=$BUILD_DIR/.dnx
 export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
 
+# Checking cache and install or restore.
 if [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
   topic "Install dnvm."
   mkdir -p $DNX_GLOBAL_HOME
