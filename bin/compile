@@ -256,7 +256,7 @@ else
 fi
 
 # Check if edge_js is in cache
-if [[ ! $CACHE_DIR/dirs/edge ]]; then
+if [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   topic "Install edge.js"
   PWD_STORE=$PWD
   curl https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip
@@ -272,7 +272,7 @@ if [[ ! $CACHE_DIR/dirs/edge ]]; then
   topic "Copy node.js to cache directory..."
   cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/
 else
-  topic "Restoring module from cache..."
+  topic "Restoring edge.js from cache..."
   cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/
   echo "$(du -hsxc $CACHE_DIR/dirs/edge|awk '{print $1}') restored in $BUILD_DIR/node_modules/edge." | indent
 fi
