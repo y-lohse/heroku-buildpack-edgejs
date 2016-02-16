@@ -243,9 +243,6 @@ if [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
   ./dnvminstall.sh | indent
   . "$DNX_USER_HOME/dnvm/dnvm.sh"
   dnvm install latest -r coreclr -alias edge-coreclr -g
-  topic "Creating dnvm cache directory..."
-  cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
-  cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/
 else
   topic "Restoring .dnx and dnx from CACHE_DIR"
   cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/
@@ -269,8 +266,13 @@ if [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   dnvm use edge-coreclr -p -r coreclr
   npm install
   npm cache clean
+
   topic "Copy node.js to cache directory..."
   cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/
+
+  topic "Creating dnvm cache directory..."
+  cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
+  cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/
 else
   topic "Restoring edge.js from cache..."
   cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/
