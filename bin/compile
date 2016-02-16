@@ -189,9 +189,9 @@ if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
 else
   topic "Restoring .apt and temp from cache..."
   cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/
-  indent "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt"
+  echo "$(du -hsxc $BUILD_DIR/.apt) Restored in $BUILD_DIR/.apt" | indent
   cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
-  indent "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp"
+  echo "$(du -hsxc $BUILD_DIR/temp) Restored in $BUILD_DIR/temp" | indent
 fi
 
 
@@ -223,7 +223,7 @@ export CPPPATH="$INCLUDE_PATH"
 export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
   
 # Change mono paths to avoid node-gyp install crash
-sed -e "s|/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs
+sed -e "s|.*/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs
 
 topic "Install edge dependences node-gyp and mocha"
 npm install node-gyp -g | indent
