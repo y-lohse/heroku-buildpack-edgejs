@@ -175,17 +175,19 @@ function add_apt_keys(){
 
 create_dirs
 create_apt_packages_files
-add_apt_keys
 
 
 # If packages not installed in CACHE_DIR then install and create cache else
 # use CACHE_DIR.
 if [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
+  add_apt_keys
   install_apt_tmp $BUILD_DIR/temp/Apttemp
   install_apt $BUILD_DIR/temp/Aptfile
+  topic "Creating cache directories..."
   cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/.apt
   cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/temp
 else
+  topic "Restoring .apt and temp from cache..."
   cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/.apt
   cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/temp
 fi
