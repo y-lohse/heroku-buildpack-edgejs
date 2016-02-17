@@ -252,9 +252,9 @@ if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   cd edge/
   EDGE_DIRECTORY=$(pwd)
   dnvm use edge-coreclr -p -r coreclr 2>&1 | indent
-  npm install 2>&1 | indent
+  npm install -- 2>&1 | indent
 
-  npm cache clean 2>&1 | indent
+  npm cache clean -- 2>&1 | indent
 
   topic "Clean source code from node_modules..."
   rm -rf $BUILD_DIR/node_modules/edge/src 2>&1 | indent
