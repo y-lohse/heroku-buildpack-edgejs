@@ -101,7 +101,7 @@ function install_apt(){
     dpkg -x $DEB $BUILD_DIR/.apt/
   done
 
-  $APT_CACHE_DIR/archives/*.deb
+  rm -rf $APT_CACHE_DIR/archives/*.deb
 }
 
 
