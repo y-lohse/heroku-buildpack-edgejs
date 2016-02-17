@@ -251,7 +251,7 @@ if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   mv edge-master edge
   cd edge/
   EDGE_DIRECTORY=$(pwd)
-  (dnvm use edge-coreclr -p -r coreclr) 2>&1 | indent
+  echo $(dnvm use edge-coreclr -p -r coreclr) 2>&1 | indent
   (npm install) 2>&1 | indent
 
   (npm cache clean) 2>&1 | indent
