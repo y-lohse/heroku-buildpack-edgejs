@@ -158,7 +158,9 @@ create_dirs
 create_apt_config_files
 
 # Test cache dirs and environment
-if [[ "$USE_CACHE" != "1" ]] || [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
+set -x
+if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
+set +x
   topic "Add gpg keys..."
   cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
   apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF 2>&1 | indent
@@ -218,7 +220,9 @@ export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
 mkdir -p $DNX_GLOBAL_HOME
 
 # Checking cache and install or restore.
-if [[ "$USE_CACHE" != "1" ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
+set -x
+if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
+set +x
   topic "Install dnvm."
   cd $BUILD_DIR/
   curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
@@ -236,8 +240,9 @@ else
 fi
 
 # Check if edge_js is in cache
-if  [[ "$USE_CACHE" != "1" ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
-
+set -x
+if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
+set +x
   topic "Install edge dependences node-gyp and mocha"
   npm install node-gyp -g 2>&1 | indent
   npm install mocha -g 2>&1 | indent
