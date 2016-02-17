@@ -161,13 +161,13 @@ create_apt_config_files
 if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
   topic "Add gpg keys..."
   cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
-  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF | indent
-  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010 | indent
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF 2>&1 | indent
+  apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010 2>&1 | indent
  
   topic "Updating apt caches"
   apt-get $APT_OPTIONS update 2>&1 | indent
-  install_apt_tmp $BUILD_DIR/temp/Apttemp 2>&1 | indent
-  install_apt $BUILD_DIR/temp/Aptfile 2>&1 | indent
+  install_apt_tmp $BUILD_DIR/temp/Apttemp
+  install_apt $BUILD_DIR/temp/Aptfile
   topic "Creating cache directories..."
   cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
   cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/ 2>&1 | indent
@@ -251,10 +251,10 @@ if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   mv edge-master edge
   cd edge/
   EDGE_DIRECTORY=$(pwd)
-  echo $(dnvm use edge-coreclr -p -r coreclr) 2>&1 | indent
-  (npm install) 2>&1 | indent
+  dnvm use edge-coreclr -p -r coreclr
+  npm install 2>&1 | indent
 
-  (npm cache clean) 2>&1 | indent
+  npm cache clean 2>&1 | indent
 
   topic "Clean source code from node_modules..."
   rm -rf $BUILD_DIR/node_modules/edge/src 2>&1 | indent
