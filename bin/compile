@@ -255,17 +255,18 @@ if [[ ! -d $CACHE_DIR/dirs/edge ]]; then
   npm cache clean
 
   topic "Clean source code from node_modules..."
-  rm -rf $BUILD_DIR/node_modules/*/src
+  rm -rf $BUILD_DIR/node_modules/edge/src
   topic "Copy node.js to cache directory..."
-  cp -ra $BUILD_DIR/node_modules/{edge,edge-cs,mocha,jshint} $CACHE_DIR/dirs/
- 
+#  cp -ra $BUILD_DIR/node_modules/{edge,edge-cs,mocha,jshint} $CACHE_DIR/dirs/
+  cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/
+  find $BUILD_DIR/ -type d -name edge-cs
   topic "Creating dnvm cache directory..."
   cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/
   cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/
 else
   topic "Restoring edge.js from cache..."
-  cp -ra $CACHE_DIR/dirs/{edge,edge-cs,mocha,jshint} $BUILD_DIR/node_modules/
-  echo "Rrestored in $BUILD_DIR/node_modules/{edge,edge-cs,mocha,jshint}" | indent
+  cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/
+  echo "Rrestored in $BUILD_DIR/node_modules/edge" | indent
 fi
   
 cd $PWD_STORE
