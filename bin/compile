@@ -148,7 +148,7 @@ function main() {
         . "$DNX_USER_HOME/dnvm/dnvm.sh"
         dnvm install latest -r coreclr -alias edge-coreclr -g 2>&1 | indent
     else
-        topic "Restoring .dnx and dnx from CACHE_DIR"
+        topic "Restoring .dnx and dnx from cache..."
         cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/ 2>&1 | indent
         echo "Restored .dnx in $BUILD_DIR/.dnx" | indent
         cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/ 2>&1 | indent
