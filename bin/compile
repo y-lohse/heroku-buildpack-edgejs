@@ -75,7 +75,7 @@ function install_apt(){
     for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
         topic "Installing $(basename $DEB)"
         # Check if packages must be placed in temp dir
-        if [[ $VAR =~ Apttemp ]]; then
+        if [[ $APTFILE =~ Apttemp ]]; then
             dpkg -x $DEB $BUILD_DIR/temp/
         else
             dpkg -x $DEB $BUILD_DIR/.apt/
