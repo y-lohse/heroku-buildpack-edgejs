@@ -26,179 +26,179 @@ APT_OPTIONS="$APT_OPTIONS -o Dir::Etc::Preferences=$LP_DIR/conf/preferences"
 APT_OPTIONS="$APT_OPTIONS -o dir::cache=$APT_CACHE_DIR"
 
 function error() {
-  echo " !     $*" >&2
-  exit 1
+    echo " !     $*" >&2
+    exit 1
 }
 
 
 function topic() {
-  echo "-----> $*"
+    echo "-----> $*"
 }
 
 
 function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
+    c='s/^/       /'
+    case $(uname) in
+        Darwin) sed -l "$c";;
+        *)      sed -u "$c";;
+    esac
 }
 
 
 function create_dirs(){
-  mkdir -p "$BUILD_DIR/.apt"
-  mkdir -p "$BUILD_DIR/temp"
-  mkdir -p "$CACHE_DIR/dirs"
-  mkdir -p "$APT_CACHE_DIR/archives/partial"
-  mkdir -p "$APT_STATE_DIR/lists/partial"
-  mkdir -p "$BUILD_DIR/.profile.d"
+    mkdir -p "$BUILD_DIR/.apt"
+    mkdir -p "$BUILD_DIR/temp"
+    mkdir -p "$CACHE_DIR/dirs"
+    mkdir -p "$APT_CACHE_DIR/archives/partial"
+    mkdir -p "$APT_STATE_DIR/lists/partial"
+    mkdir -p "$BUILD_DIR/.profile.d"
 }
 
 
 
 function install_apt(){
-  APTFILE=$1
-
-  for PACKAGE in $(cat ${APTFILE}); do
-    if [[ $PACKAGE == *deb ]]; then
-      PACKAGE_NAME=$(basename $PACKAGE .deb)
-      PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
+    APTFILE=$1
   
-      topic "Fetching $PACKAGE"
-      curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
-    else
-      topic "Fetching .debs for $PACKAGE"
-      apt-get $APT_OPTIONS -y --force-yes -d install $PACKAGE --reinstall | indent
-    fi
-  done
- 
-  for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
-    topic "Installing $(basename $DEB)"
-    # Check if packages must be placed in temp dir
-    if [ $APTFILE == "Apttemp" ]; then
-      dpkg -x $DEB $BUILD_DIR/temp/
-    else
-      dpkg -x $DEB $BUILD_DIR/.apt/
-    fi
-  done
-
-  rm -rf $APT_CACHE_DIR/archives/*.deb
+    for PACKAGE in $(cat ${APTFILE}); do
+        if [[ $PACKAGE == *deb ]]; then
+            PACKAGE_NAME=$(basename $PACKAGE .deb)
+            PACKAGE_FILE=$APT_CACHE_DIR/archives/00_$PACKAGE_NAME.deb
+      
+            topic "Fetching $PACKAGE"
+            curl -s -L -z $PACKAGE_FILE -o $PACKAGE_FILE $PACKAGE 2>&1 | indent
+        else
+            topic "Fetching .debs for $PACKAGE"
+            apt-get $APT_OPTIONS -y --force-yes -d install $PACKAGE --reinstall | indent
+        fi
+    done
+   
+    for DEB in $(ls -1 $APT_CACHE_DIR/archives/*.deb); do
+        topic "Installing $(basename $DEB)"
+        # Check if packages must be placed in temp dir
+        if [ $APTFILE ~= /Apttemp/ ]; then
+            dpkg -x $DEB $BUILD_DIR/temp/
+        else
+            dpkg -x $DEB $BUILD_DIR/.apt/
+        fi
+    done
+  
+    rm -rf $APT_CACHE_DIR/archives/*.deb
 }
 
 
 
 # Main
 function main() {
-  create_dirs
-  
-  # Test cache dirs and environment
-  if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
-    topic "Add gpg keys..."
-    cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
-    apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF 2>&1 | indent
-    apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010 2>&1 | indent
-   
-    topic "Updating apt caches"
-    apt-get $APT_OPTIONS update 2>&1 | indent
-
-    # Install build dependencies
-    install_apt $LP_DIR/conf/Apttemp 
-    install_apt $LP_DIR/conf/Aptfile
-    topic "Creating cache directories..."
-    cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
-    cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/ 2>&1 | indent
-  else
-    topic "Restoring .apt and temp from cache..."
-    cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/ 2>&1 | indent
-    echo "Restored .apt in $BUILD_DIR/.apt" | indent
-    cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
-    echo "Restored temp in $BUILD_DIR/temp" | indent
-  fi
-  
-  
-  topic "Copy profile script..."
-  cp -ra $LP_DIR/conf/000_apt.sh $BUILD_DIR/.profile.d/000_apt.sh
-  chmod +x $BUILD_DIR/.profile.d/000_apt.sh
-  
-  export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
-  export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
-  export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LD_LIBRARY_PATH"
-  export LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
-  export LIBRARY_PATH="$LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LIBRARY_PATH"
-  export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$BUILD_DIR/temp/usr/include$INCLUDE_PATH"
-  export CPATH="$INCLUDE_PATH"
-  export CPPPATH="$INCLUDE_PATH"
-  export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
+    create_dirs
     
-  # Change mono paths to avoid node-gyp install crash
-  sed -e "s|.*/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs 2>&1 | indent
-  
-  
-  export DNX_USER_HOME=$BUILD_DIR/.dnx
-  export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
-  mkdir -p $DNX_GLOBAL_HOME
-  
-  # Checking cache and install or restore.
-  if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
-    topic "Install dnvm."
-    cd $BUILD_DIR/
-    curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
-    chmod +x dnvminstall.sh
-    ./dnvminstall.sh 2>&1 | indent
-    . "$DNX_USER_HOME/dnvm/dnvm.sh"
-    dnvm install latest -r coreclr -alias edge-coreclr -g 2>&1 | indent
-  else
-    topic "Restoring .dnx and dnx from CACHE_DIR"
-    cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/ 2>&1 | indent
-    echo "Restored .dnx in $BUILD_DIR/.dnx" | indent
-    cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/ 2>&1 | indent
-    echo "Restored dnx in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
-    . "$DNX_USER_HOME/dnvm/dnvm.sh"
-  fi
-  
-  # Check if edge_js is in cache
-  if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
-    topic "Install edge dependences node-gyp and mocha"
-    npm install node-gyp -g 2>&1 | indent
-    npm install mocha -g 2>&1 | indent
-  
-    topic "Install edge.js"
-    PWD_STORE=$PWD
-    curl -sSL https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
-    cd $BUILD_DIR/node_modules/
-    unzip  -q $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
-    rm $BUILD_DIR/node_modules/edge.js.zip 
-    mv edge-master edge
-    cd edge/
-    EDGE_DIRECTORY=$(pwd)
-    dnvm use edge-coreclr -p -r coreclr
-    npm install 2>&1 | indent
-  
-    npm cache clean 2>&1 | indent
-  
-    topic "Clean source code from node_modules..."
-    rm -rf $BUILD_DIR/node_modules/edge/src 2>&1 | indent
-  
-    topic "Copy node.js to cache directory..."
-    cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/ 2>&1 | indent
-  
-    topic "Creating dnvm cache directory..."
-    cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/ 2>&1 | indent
-    cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/ 2>&1 | indent
-    cd $PWD_STORE
-  else
-    topic "Restoring edge.js from cache..."
-    cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/ 2>&1 | indent
-    echo "restored in $BUILD_DIR/node_modules/edge" | indent
-  fi
+    # Test cache dirs and environment
+    if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.apt ]] || [[ ! -d $CACHE_DIR/dirs/temp ]]; then
+        topic "Add gpg keys..."
+        cp -a /etc/apt/trusted.gpg $BUILD_DIR/temp/trusted.gpg
+        apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF 2>&1 | indent
+        apt-key --keyring $BUILD_DIR/temp/trusted.gpg adv --keyserver keyserver.ubuntu.com --recv-keys 126C0D24BD8A2942CC7DF8AC7638D0442B90D010 2>&1 | indent
+       
+        topic "Updating apt caches"
+        apt-get $APT_OPTIONS update 2>&1 | indent
     
-  # Delete temporal folder
-  rm -rf $BUILD_DIR/temp
-  
-  # Set HOME environment to original value
-  export HOME=$HOME_APP
-  
-  export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
+        # Install build dependencies
+        install_apt $LP_DIR/conf/Apttemp 
+        install_apt $LP_DIR/conf/Aptfile
+        topic "Creating cache directories..."
+        cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
+        cp -ra $BUILD_DIR/temp $CACHE_DIR/dirs/ 2>&1 | indent
+    else
+        topic "Restoring .apt and temp from cache..."
+        cp -ra $CACHE_DIR/dirs/.apt $BUILD_DIR/ 2>&1 | indent
+        echo "Restored .apt in $BUILD_DIR/.apt" | indent
+        cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
+        echo "Restored temp in $BUILD_DIR/temp" | indent
+    fi
+    
+    
+    topic "Copy profile script..."
+    cp -ra $LP_DIR/conf/000_apt.sh $BUILD_DIR/.profile.d/000_apt.sh
+    chmod +x $BUILD_DIR/.profile.d/000_apt.sh
+    
+    export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
+    export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LD_LIBRARY_PATH"
+    export LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
+    export LIBRARY_PATH="$LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LIBRARY_PATH"
+    export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$BUILD_DIR/temp/usr/include$INCLUDE_PATH"
+    export CPATH="$INCLUDE_PATH"
+    export CPPPATH="$INCLUDE_PATH"
+    export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
+      
+    # Change mono paths to avoid node-gyp install crash
+    sed -e "s|.*/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs 2>&1 | indent
+    
+    
+    export DNX_USER_HOME=$BUILD_DIR/.dnx
+    export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
+    mkdir -p $DNX_GLOBAL_HOME
+    
+    # Checking cache and install or restore.
+    if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
+        topic "Install dnvm."
+        cd $BUILD_DIR/
+        curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
+        chmod +x dnvminstall.sh
+        ./dnvminstall.sh 2>&1 | indent
+        . "$DNX_USER_HOME/dnvm/dnvm.sh"
+        dnvm install latest -r coreclr -alias edge-coreclr -g 2>&1 | indent
+    else
+        topic "Restoring .dnx and dnx from CACHE_DIR"
+        cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/ 2>&1 | indent
+        echo "Restored .dnx in $BUILD_DIR/.dnx" | indent
+        cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/ 2>&1 | indent
+        echo "Restored dnx in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
+        . "$DNX_USER_HOME/dnvm/dnvm.sh"
+    fi
+    
+    # Check if edge_js is in cache
+    if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
+        topic "Install edge dependences node-gyp and mocha"
+        npm install node-gyp -g 2>&1 | indent
+        npm install mocha -g 2>&1 | indent
+      
+        topic "Install edge.js"
+        PWD_STORE=$PWD
+        curl -sSL https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
+        cd $BUILD_DIR/node_modules/
+        unzip  -q $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
+        rm $BUILD_DIR/node_modules/edge.js.zip 
+        mv edge-master edge
+        cd edge/
+        EDGE_DIRECTORY=$(pwd)
+        dnvm use edge-coreclr -p -r coreclr
+        npm install 2>&1 | indent
+      
+        npm cache clean 2>&1 | indent
+      
+        topic "Clean source code from node_modules..."
+        rm -rf $BUILD_DIR/node_modules/edge/src 2>&1 | indent
+      
+        topic "Copy node.js to cache directory..."
+        cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/ 2>&1 | indent
+      
+        topic "Creating dnvm cache directory..."
+        cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/ 2>&1 | indent
+        cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/ 2>&1 | indent
+        cd $PWD_STORE
+    else
+        topic "Restoring edge.js from cache..."
+        cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/ 2>&1 | indent
+        echo "restored in $BUILD_DIR/node_modules/edge" | indent
+    fi
+      
+    # Delete temporal folder
+    rm -rf $BUILD_DIR/temp
+    
+    # Set HOME environment to original value
+    export HOME=$HOME_APP
+    
+    export | grep -E -e ' (PATH|LD_LIBRARY_PATH|LIBRARY_PATH|INCLUDE_PATH|CPATH|CPPPATH|PKG_CONFIG_PATH)='  > "$LP_DIR/export"
 }
 
 main
