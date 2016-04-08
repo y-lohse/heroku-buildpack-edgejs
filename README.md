@@ -27,6 +27,12 @@ heroku config:add EDGE_USE_CORECLR=1
 
 **DO NOT INCLUDE EDGEJS DEPENDENCY in package.json.**
 
+If you want use cache at build time, write in Edgejs file:
+
+```bash
+USE_CACHE=1
+```
+
 ## License
 
 MIT
