@@ -137,60 +137,6 @@ function main() {
     export DNX_USER_HOME=$BUILD_DIR/.dnx
     export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
     mkdir -p $DNX_GLOBAL_HOME
-    
-    # Checking cache and install or restore.
-    if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
-        topic "Install dnvm."
-        cd $BUILD_DIR/
-        curl -sSL https://raw.githubusercontent.com/aspnet/Home/1efd1013379930a3855854885edb59c9ce47ca58/dnvminstall.sh > dnvminstall.sh 
-        chmod +x dnvminstall.sh
-        ./dnvminstall.sh 2>&1 | indent
-        . "$DNX_USER_HOME/dnvm/dnvm.sh"
-        dnvm install latest -r coreclr -alias edge-coreclr -g 2>&1 | indent
-    else
-        topic "Restoring .dnx and dnx from cache..."
-        cp -ra $CACHE_DIR/dirs/.dnx $BUILD_DIR/ 2>&1 | indent
-        echo "Restored .dnx in $BUILD_DIR/.dnx" | indent
-        cp -ra $CACHE_DIR/dirs/dnx $BUILD_DIR/.apt/usr/local/lib/ 2>&1 | indent
-        echo "Restored dnx in $BUILD_DIR/.apt/usr/local/lib/dnx." | indent
-        . "$DNX_USER_HOME/dnvm/dnvm.sh"
-    fi
-    
-    # Check if edge_js is in cache
-    if  [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/edge ]]; then
-        topic "Install edge dependences node-gyp and mocha"
-        npm install node-gyp -g 2>&1 | indent
-        npm install mocha -g 2>&1 | indent
-      
-        topic "Install edge.js"
-        PWD_STORE=$PWD
-        curl -sSL https://codeload.github.com/tjanczuk/edge/zip/master > $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
-        cd $BUILD_DIR/node_modules/
-        unzip  -q $BUILD_DIR/node_modules/edge.js.zip 2>&1 | indent
-        rm $BUILD_DIR/node_modules/edge.js.zip 
-        mv edge-master edge
-        cd edge/
-        EDGE_DIRECTORY=$(pwd)
-        dnvm use edge-coreclr -p -r coreclr
-        npm install 2>&1 | indent
-      
-        npm cache clean 2>&1 | indent
-      
-        topic "Clean source code from node_modules..."
-        rm -rf $BUILD_DIR/node_modules/edge/src 2>&1 | indent
-      
-        topic "Copy node.js to cache directory..."
-        cp -ra $BUILD_DIR/node_modules/edge $CACHE_DIR/dirs/ 2>&1 | indent
-      
-        topic "Creating dnvm cache directory..."
-        cp -ra $DNX_USER_HOME $CACHE_DIR/dirs/ 2>&1 | indent
-        cp -ra $DNX_GLOBAL_HOME $CACHE_DIR/dirs/ 2>&1 | indent
-        cd $PWD_STORE
-    else
-        topic "Restoring edge.js from cache..."
-        cp -ra $CACHE_DIR/dirs/edge $BUILD_DIR/node_modules/ 2>&1 | indent
-        echo "restored in $BUILD_DIR/node_modules/edge" | indent
-    fi
       
     # Delete temporal folder
     rm -rf $BUILD_DIR/temp
