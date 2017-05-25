@@ -142,7 +142,7 @@ function main() {
     if [[ $USE_CACHE -ne 1 ]] || [[ ! -d $CACHE_DIR/dirs/.dnx ]] || [[ ! -d $CACHE_DIR/dirs/dnx ]];then
         topic "Install dnvm."
         cd $BUILD_DIR/
-        curl -sSL https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.sh > dnvminstall.sh 
+        curl -sSL https://raw.githubusercontent.com/aspnet/Home/1efd1013379930a3855854885edb59c9ce47ca58/dnvminstall.sh > dnvminstall.sh 
         chmod +x dnvminstall.sh
         ./dnvminstall.sh 2>&1 | indent
         . "$DNX_USER_HOME/dnvm/dnvm.sh"
