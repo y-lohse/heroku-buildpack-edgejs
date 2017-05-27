@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-apt-get install mono-runtime libmono-system-core4.0-cil
+sudo apt-get install mono-runtime libmono-system-core4.0-cil
