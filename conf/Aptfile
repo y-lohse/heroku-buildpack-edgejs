@@ -1,2 +1,9 @@
 mono-runtime
 libmono-system-core4.0-cil
+libmono-system-drawing4.0-cil
+libmono-cairo4.0-cil
+libsdl-mixer1.2
+libsdl1.2debian
+libmono-system-xml-linq4.0-cil
+libmono-system-windows-forms4.0-cil
+libusb-1.0-0
