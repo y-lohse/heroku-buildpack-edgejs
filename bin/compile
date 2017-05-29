@@ -132,11 +132,6 @@ function main() {
       
     # Change mono paths to avoid node-gyp install crash
     sed -e "s|.*/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs 2>&1 | indent
-    
-    
-    export DNX_USER_HOME=$BUILD_DIR/.dnx
-    export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
-    mkdir -p $DNX_GLOBAL_HOME
       
     # Delete temporal folder
     rm -rf $BUILD_DIR/temp

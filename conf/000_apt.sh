@@ -11,6 +11,4 @@ export MONO_CFG_DIR="${HOME}/.apt/etc"
 export MONO_REGISTRY_PATH="${HOME}/.mono/registry"
 export DNX_USER_HOME="${HOME}/.dnx"
 export DNX_GLOBAL_HOME="${HOME}/.apt/usr/local/lib/dnx"
-source $HOME/.dnx/dnvm/dnvm.sh
-dnvm use edge-coreclr -p -r coreclr
 
