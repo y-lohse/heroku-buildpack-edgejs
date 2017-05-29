@@ -102,6 +102,7 @@ function main() {
         apt-get $APT_OPTIONS update 2>&1 | indent
     
         # Install build dependencies
+        install_apt $LP_DIR/conf/Apttemp 
         install_apt $LP_DIR/conf/Aptfile
         topic "Creating cache directories..."
         cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
@@ -113,6 +114,29 @@ function main() {
         cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
         echo "Restored temp in $BUILD_DIR/temp" | indent
     fi
+    
+    
+    topic "Copy profile script..."
+    cp -ra $LP_DIR/conf/000_apt.sh $BUILD_DIR/.profile.d/000_apt.sh
+    chmod +x $BUILD_DIR/.profile.d/000_apt.sh
+    
+    export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
+    export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LD_LIBRARY_PATH"
+    export LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
+    export LIBRARY_PATH="$LIBRARY_PATH:$BUILD_DIR/temp/usr/lib/x86_64-linux-gnu:$BUILD_DIR/temp/usr/lib/i386-linux-gnu:$BUILD_DIR/temp/usr/lib:$LIBRARY_PATH"
+    export INCLUDE_PATH="$BUILD_DIR/.apt/usr/include:$BUILD_DIR/temp/usr/include$INCLUDE_PATH"
+    export CPATH="$INCLUDE_PATH"
+    export CPPPATH="$INCLUDE_PATH"
+    export PKG_CONFIG_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu/pkgconfig:$BUILD_DIR/.apt/usr/lib/pkgconfig:$PKG_CONFIG_PATH"
+      
+    # Change mono paths to avoid node-gyp install crash
+    sed -e "s|.*/usr/|$BUILD_DIR/temp/usr/|g" -i $BUILD_DIR/temp/usr/bin/dmcs 2>&1 | indent
+    
+    
+    export DNX_USER_HOME=$BUILD_DIR/.dnx
+    export DNX_GLOBAL_HOME=$BUILD_DIR/.apt/usr/local/lib/dnx
+    mkdir -p $DNX_GLOBAL_HOME
       
     # Delete temporal folder
     rm -rf $BUILD_DIR/temp
