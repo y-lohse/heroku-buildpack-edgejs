@@ -102,7 +102,6 @@ function main() {
         apt-get $APT_OPTIONS update 2>&1 | indent
     
         # Install build dependencies
-        install_apt $LP_DIR/conf/Apttemp 
         install_apt $LP_DIR/conf/Aptfile
         topic "Creating cache directories..."
         cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
@@ -114,11 +113,6 @@ function main() {
         cp -ra $CACHE_DIR/dirs/temp $BUILD_DIR/
         echo "Restored temp in $BUILD_DIR/temp" | indent
     fi
-    
-    
-    topic "Copy profile script..."
-    cp -ra $LP_DIR/conf/000_apt.sh $BUILD_DIR/.profile.d/000_apt.sh
-    chmod +x $BUILD_DIR/.profile.d/000_apt.sh
     
     export PATH="$BUILD_DIR/.apt/usr/bin:$PATH"
     export LD_LIBRARY_PATH="$BUILD_DIR/.apt/usr/lib/x86_64-linux-gnu:$BUILD_DIR/.apt/usr/lib/i386-linux-gnu:$BUILD_DIR/.apt/usr/lib"
