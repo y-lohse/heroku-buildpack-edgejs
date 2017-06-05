@@ -102,7 +102,6 @@ function main() {
         apt-get $APT_OPTIONS update 2>&1 | indent
     
         # Install build dependencies
-        install_apt $LP_DIR/conf/Apttemp 
         install_apt $LP_DIR/conf/Aptfile
         topic "Creating cache directories..."
         cp -ra $BUILD_DIR/.apt $CACHE_DIR/dirs/ 2>&1 | indent
