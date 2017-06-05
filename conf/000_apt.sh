@@ -9,3 +9,6 @@ export MONO_PATH="$HOME/.apt/usr/lib/mono/4.0:${HOME}/.apt/usr/lib/mono/3.5:${HO
 export MONO_CONFIG="${HOME}/.apt/etc/mono/config"
 export MONO_CFG_DIR="${HOME}/.apt/etc"
 export MONO_REGISTRY_PATH="${HOME}/.mono/registry"
+export DNX_USER_HOME="${HOME}/.dnx"
+export DNX_GLOBAL_HOME="${HOME}/.apt/usr/local/lib/dnx"
+
